@@ -22,6 +22,8 @@ import page.support.ReorderList;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.image.BufferedImage;
+import java.awt.Graphics2D;
+import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -294,9 +296,8 @@ public class TraitEditPage extends Page {
         BufferedImage bimg = new Importer(str).getImg();
         if (bimg == null)
             return;
-        if (bimg.getWidth() != 41 && bimg.getHeight() != 41) {
-            getFile("Wrong img size. Img size: w=41, h=41");
-            return;
+        if (bimg.getWidth() != 41 || bimg.getHeight() != 41) {
+            bimg = resizeImage(bimg, 41, 41);
         }
         if (t.icon != null)
             t.icon.setImg(MainBCU.builder.build(bimg));
@@ -323,5 +324,16 @@ public class TraitEditPage extends Page {
             jlct.setSelectedValue(slt, true);
             changing = false;
         }
+    }
+
+    private BufferedImage resizeImage(BufferedImage img,int w, int h){
+        Image tmp = img.getScaledInstance(w, h, Image.SCALE_SMOOTH);
+        BufferedImage dimg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D g2d = dimg.createGraphics();
+        g2d.drawImage(tmp, 0, 0, null);
+        g2d.dispose();
+
+        return dimg;
     }
 }
