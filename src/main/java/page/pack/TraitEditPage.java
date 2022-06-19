@@ -296,8 +296,12 @@ public class TraitEditPage extends Page {
         BufferedImage bimg = new Importer(str).getImg();
         if (bimg == null)
             return;
+        if (bimg.getWidth() != bimg.getHeight()) {
+            getFile("The icon must be a square");
+            return;
+        }
         if (bimg.getWidth() != 41 || bimg.getHeight() != 41) {
-            bimg = resizeImage(bimg, 41, 41);
+            bimg = TraitList.resizeImage(bimg, 41, 41);
         }
         if (t.icon != null)
             t.icon.setImg(MainBCU.builder.build(bimg));
@@ -324,16 +328,5 @@ public class TraitEditPage extends Page {
             jlct.setSelectedValue(slt, true);
             changing = false;
         }
-    }
-
-    private BufferedImage resizeImage(BufferedImage img,int w, int h){
-        Image tmp = img.getScaledInstance(w, h, Image.SCALE_SMOOTH);
-        BufferedImage dimg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
-
-        Graphics2D g2d = dimg.createGraphics();
-        g2d.drawImage(tmp, 0, 0, null);
-        g2d.dispose();
-
-        return dimg;
     }
 }

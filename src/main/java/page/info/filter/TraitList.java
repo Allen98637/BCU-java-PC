@@ -2,6 +2,9 @@ package page.info.filter;
 
 import common.CommonStatic;
 import common.util.unit.Trait;
+import common.pack.Source;
+import common.pack.UserProfile;
+import common.pack.Context;
 import main.MainBCU;
 import utilpc.Interpret;
 import utilpc.Theme;
@@ -11,6 +14,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.Vector;
+import java.io.File;
+import javax.imageio.ImageIO;
+import java.io.IOException;
 
 public class TraitList extends JList<Trait> {
 
@@ -37,8 +43,27 @@ public class TraitList extends JList<Trait> {
                 } else {
                     if (!editing)
                         jl.setText(trait.name);
-                    if (trait.icon != null)
-                        jl.setIcon(new ImageIcon((BufferedImage)trait.icon.getImg().bimg()));
+                    if (trait.icon != null){
+                        BufferedImage icon = (BufferedImage)trait.icon.getImg().bimg();
+                        if(icon.getWidth() != icon.getHeight()) {
+                            File file =((Source.Workspace) UserProfile.getUserPack(trait.id.pack).source).getTraitIconFile(trait.id);
+                            if (file.delete()) {
+                                trait.icon = null;
+                            }
+                            icon = (BufferedImage) CommonStatic.getBCAssets().dummyTrait.getImg().bimg();
+                        } else if (icon.getWidth() != 41 || icon.getHeight() != 41) {
+                            icon = resizeImage(icon, 41, 41);
+                            try {
+                                File file = ((Source.Workspace) UserProfile.getUserPack(trait.id.pack).source).getTraitIconFile(trait.id);
+                                Context.check(file);
+                                ImageIO.write(icon, "PNG", file);
+                                trait.icon = MainBCU.builder.toVImg(icon);
+                            } catch (IOException e) {
+                                icon = (BufferedImage) CommonStatic.getBCAssets().dummyTrait.getImg().bimg();
+                            }
+                        }
+                        jl.setIcon(new ImageIcon(icon));
+                    }
                     else
                         jl.setIcon(new ImageIcon((BufferedImage) CommonStatic.getBCAssets().dummyTrait.getImg().bimg()));
                 }
@@ -49,5 +74,16 @@ public class TraitList extends JList<Trait> {
 
     public void setListData() {
         setListData(list);
+    }
+
+    public static BufferedImage resizeImage(BufferedImage img,int w, int h){
+        Image tmp = img.getScaledInstance(w, h, Image.SCALE_SMOOTH);
+        BufferedImage dimg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+
+        Graphics2D g2d = dimg.createGraphics();
+        g2d.drawImage(tmp, 0, 0, null);
+        g2d.dispose();
+
+        return dimg;
     }
 }
